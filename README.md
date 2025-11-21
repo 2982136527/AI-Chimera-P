@@ -1,3 +1,5 @@
+** 可选择方形卡片或长方形卡片
+** 支持在浏览器页面设置Key，Key仅存储在您的本地浏览器中，不会上传到服务器。
 ## Run Locally
 
 **Prerequisites:** Node.js
