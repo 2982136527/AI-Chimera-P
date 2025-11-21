@@ -1,9 +1,10 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { CreatureData } from '../types';
 import StatRadar from './StatRadar';
 import TypeBadge from './TypeBadge';
 import { TYPE_COLORS } from '../constants';
-import { Dna, Loader2, Crown, Gem, Hexagon, Star, Circle, Swords, Zap, Download, Share2, Sparkles, ChevronRight, Library } from 'lucide-react';
+import { Dna, Loader2, Crown, Hexagon, Swords, Download, Share2, Sparkles, ChevronRight, DnaOff } from 'lucide-react';
 
 interface PokemonCardProps {
   data: CreatureData;
@@ -211,7 +212,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
                  <img 
                    src={imageUrl} 
                    alt={data.name}
-                   className="w-full h-full object-contain drop-shadow-2xl transform transition-transform duration-700 group-hover:scale-105"
+                   className="w-full h-full object-cover drop-shadow-2xl transform transition-transform duration-700 group-hover:scale-105"
                  />
                ) : (
                  <div className="w-full h-full flex items-center justify-center text-slate-300">

@@ -4,9 +4,11 @@ import { CreatureStats } from '../types';
 
 interface StatRadarProps {
   stats: CreatureStats;
+  className?: string;
+  compact?: boolean;
 }
 
-const StatRadar: React.FC<StatRadarProps> = ({ stats }) => {
+const StatRadar: React.FC<StatRadarProps> = ({ stats, className, compact = false }) => {
   const data = [
     { subject: '生命', fullSubject: '生命 VIT', A: stats.vitality, fullMark: 150 },
     { subject: '力量', fullSubject: '力量 STR', A: stats.power, fullMark: 150 },
@@ -17,15 +19,17 @@ const StatRadar: React.FC<StatRadarProps> = ({ stats }) => {
   ];
 
   return (
-    <div className="w-full h-[220px]">
+    <div className={className || "w-full h-[220px]"}>
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="50%" data={data}>
-          <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" />
-          <PolarAngleAxis 
-            dataKey="fullSubject" 
-            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} 
-            tickSize={12}
-          />
+        <RadarChart cx="50%" cy="50%" outerRadius={compact ? "65%" : "50%"} data={data}>
+          <PolarGrid stroke={compact ? "#94a3b8" : "#e2e8f0"} strokeDasharray="3 3" />
+          {!compact && (
+            <PolarAngleAxis 
+              dataKey="fullSubject" 
+              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} 
+              tickSize={12}
+            />
+          )}
           <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
           <Radar
             name="能力"
@@ -33,7 +37,7 @@ const StatRadar: React.FC<StatRadarProps> = ({ stats }) => {
             stroke="#6366f1"
             strokeWidth={2}
             fill="#6366f1"
-            fillOpacity={0.3}
+            fillOpacity={0.4}
           />
         </RadarChart>
       </ResponsiveContainer>

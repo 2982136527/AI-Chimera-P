@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Dice5, Wand2, Palette, Type, Library, Grid, LayoutGrid } from 'lucide-react';
+import { Loader2, AlertCircle, Dice5, Wand2, Palette, Type, Library, Grid, LayoutGrid, Settings, X, RectangleVertical, Square } from 'lucide-react';
 import { generatePokemonData, generatePokemonImage, optimizePrompt, generateEvolutionData, generateRandomPrompt, generatePreEvolutionData } from './services/geminiService';
 import { CreatureData, GenerationStatus, SavedCreature } from './types';
 import PokemonCard from './components/PokemonCard';
+import PokemonCardSquare from './components/PokemonCardSquare';
 import PokemonList from './components/PokemonList';
 import { ART_STYLES } from './constants';
 
@@ -11,6 +12,7 @@ const App: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [customName, setCustomName] = useState('');
   const [selectedStyle, setSelectedStyle] = useState('fantasy_concept');
+  const [cardTemplate, setCardTemplate] = useState<'classic' | 'square'>('classic');
   const [status, setStatus] = useState<GenerationStatus>(GenerationStatus.IDLE);
   const [currentPokemon, setCurrentPokemon] = useState<CreatureData | null>(null);
   const [pokemonImage, setPokemonImage] = useState<string | null>(null);
@@ -18,6 +20,10 @@ const App: React.FC = () => {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [view, setView] = useState<'create' | 'gallery'>('create');
+
+  // Settings state
+  const [showSettings, setShowSettings] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
 
   // History Management
   const [history, setHistory] = useState<SavedCreature[]>(() => {
@@ -32,6 +38,21 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('creatureHistory', JSON.stringify(history));
   }, [history]);
+
+  useEffect(() => {
+    if (showSettings) {
+      setApiKeyInput(localStorage.getItem('custom_gemini_api_key') || '');
+    }
+  }, [showSettings]);
+
+  const handleSaveKey = () => {
+    if (apiKeyInput.trim()) {
+      localStorage.setItem('custom_gemini_api_key', apiKeyInput.trim());
+    } else {
+      localStorage.removeItem('custom_gemini_api_key');
+    }
+    setShowSettings(false);
+  };
 
   const addToHistory = (data: CreatureData, img: string | null) => {
     const newRecord: SavedCreature = {
@@ -244,21 +265,30 @@ const App: React.FC = () => {
             </h1>
           </div>
 
-          <nav className="flex gap-1 bg-slate-100 p-1 rounded-xl">
-             <button 
-               onClick={() => setView('create')}
-               className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${view === 'create' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-             >
-               <Wand2 size={14} /> 创造
-             </button>
-             <button 
-               onClick={() => setView('gallery')}
-               className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${view === 'gallery' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-             >
-               <Library size={14} /> 博物志
-               {history.length > 0 && <span className="bg-slate-200 text-slate-600 text-[10px] px-1.5 rounded-full">{history.length}</span>}
-             </button>
-          </nav>
+          <div className="flex items-center gap-3">
+            <nav className="flex gap-1 bg-slate-100 p-1 rounded-xl">
+              <button 
+                onClick={() => setView('create')}
+                className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${view === 'create' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                <Wand2 size={14} /> <span className="hidden sm:inline">创造</span>
+              </button>
+              <button 
+                onClick={() => setView('gallery')}
+                className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${view === 'gallery' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                <Library size={14} /> <span className="hidden sm:inline">博物志</span>
+                {history.length > 0 && <span className="bg-slate-200 text-slate-600 text-[10px] px-1.5 rounded-full">{history.length}</span>}
+              </button>
+            </nav>
+            <button 
+              onClick={() => setShowSettings(true)} 
+              className="p-2 text-slate-400 hover:text-slate-700 transition-colors rounded-lg hover:bg-slate-100"
+              title="设置"
+            >
+              <Settings size={20} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -298,7 +328,7 @@ const App: React.FC = () => {
               {/* Settings Bar */}
               <div className="bg-slate-50 rounded-2xl p-3 flex flex-wrap gap-4 items-center border-t border-slate-100">
                  {/* Name Input */}
-                 <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 focus-within:border-indigo-400 transition-colors flex-1 min-w-[200px]">
+                 <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 focus-within:border-indigo-400 transition-colors flex-1 min-w-[160px]">
                     <Type size={16} className="text-slate-400" />
                     <input 
                       type="text" 
@@ -310,7 +340,7 @@ const App: React.FC = () => {
                  </div>
 
                  {/* Style Selector */}
-                 <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 flex-1 min-w-[200px] relative group">
+                 <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 flex-1 min-w-[160px] relative group">
                     <Palette size={16} className="text-slate-400" />
                     <select 
                       value={selectedStyle}
@@ -321,6 +351,24 @@ const App: React.FC = () => {
                         <option key={s.id} value={s.id}>{s.label}</option>
                       ))}
                     </select>
+                 </div>
+
+                 {/* Template Switcher */}
+                 <div className="flex bg-white rounded-xl border border-slate-200 p-1">
+                    <button 
+                        onClick={() => setCardTemplate('classic')}
+                        className={`p-2 rounded-lg transition-colors ${cardTemplate === 'classic' ? 'bg-slate-100 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                        title="经典卡片"
+                    >
+                        <RectangleVertical size={18} />
+                    </button>
+                    <button 
+                        onClick={() => setCardTemplate('square')}
+                        className={`p-2 rounded-lg transition-colors ${cardTemplate === 'square' ? 'bg-slate-100 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                        title="方形卡片"
+                    >
+                        <Square size={18} />
+                    </button>
                  </div>
 
                  {/* Generate Button */}
@@ -375,17 +423,31 @@ const App: React.FC = () => {
                     </div>
                  ) : (
                     currentPokemon && (
-                      <PokemonCard
-                        data={currentPokemon}
-                        imageUrl={pokemonImage}
-                        onEvolve={handleEvolve}
-                        onUltimateEvolve={handleUltimateEvolve}
-                        onPreview={handlePreview}
-                        onGeneratePreEvolution={handleGeneratePreEvolution}
-                        availableForms={availableForms}
-                        fullEvolutionChain={fullEvolutionChain}
-                        isBusy={status === GenerationStatus.GENERATING_DATA || status === GenerationStatus.GENERATING_IMAGE}
-                      />
+                        cardTemplate === 'square' ? (
+                            <PokemonCardSquare 
+                                data={currentPokemon}
+                                imageUrl={pokemonImage}
+                                onEvolve={handleEvolve}
+                                onUltimateEvolve={handleUltimateEvolve}
+                                onPreview={handlePreview}
+                                onGeneratePreEvolution={handleGeneratePreEvolution}
+                                availableForms={availableForms}
+                                fullEvolutionChain={fullEvolutionChain}
+                                isBusy={status === GenerationStatus.GENERATING_DATA || status === GenerationStatus.GENERATING_IMAGE}
+                            />
+                        ) : (
+                            <PokemonCard
+                                data={currentPokemon}
+                                imageUrl={pokemonImage}
+                                onEvolve={handleEvolve}
+                                onUltimateEvolve={handleUltimateEvolve}
+                                onPreview={handlePreview}
+                                onGeneratePreEvolution={handleGeneratePreEvolution}
+                                availableForms={availableForms}
+                                fullEvolutionChain={fullEvolutionChain}
+                                isBusy={status === GenerationStatus.GENERATING_DATA || status === GenerationStatus.GENERATING_IMAGE}
+                            />
+                        )
                     )
                  )}
               </div>
@@ -399,6 +461,58 @@ const App: React.FC = () => {
           />
         )}
       </main>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 animate-scale-in">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-slate-800">设置 API Key</h3>
+                <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600">
+                  <X size={20} />
+                </button>
+              </div>
+              <p className="text-sm text-slate-500 mb-4">
+                  默认使用系统内置 Key。如果您想使用自己的 Gemini API Key，请在此输入。
+                  <br/><span className="text-xs text-indigo-500 mt-1 inline-block">Key 仅存储在您的本地浏览器中，不会上传到服务器。</span>
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Gemini API Key</label>
+                  <input 
+                    type="password" 
+                    value={apiKeyInput}
+                    onChange={(e) => setApiKeyInput(e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all font-mono text-sm"
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-6 flex gap-3">
+                 <button 
+                   onClick={() => {
+                     setApiKeyInput('');
+                     localStorage.removeItem('custom_gemini_api_key');
+                     setShowSettings(false);
+                   }}
+                   className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors"
+                 >
+                   清除 / 重置
+                 </button>
+                 <button 
+                   onClick={handleSaveKey}
+                   className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 shadow-lg shadow-slate-200 transition-all hover:-translate-y-0.5"
+                 >
+                   保存设置
+                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

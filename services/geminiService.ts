@@ -4,8 +4,9 @@ import { CreatureData } from "../types";
 import { ART_STYLES } from "../constants";
 
 const getClient = () => {
-  // Reverted to using process.env.API_KEY as requested
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Check for custom key in localStorage first, then fallback to environment variable
+  const customKey = typeof localStorage !== 'undefined' ? localStorage.getItem('custom_gemini_api_key') : null;
+  return new GoogleGenAI({ apiKey: customKey || process.env.API_KEY });
 };
 
 // Helper function to retry API calls on failure
@@ -246,6 +247,12 @@ export const generatePokemonImage = async (prompt: string, data: CreatureData, s
       model: 'gemini-2.5-flash-image',
       contents: {
         parts: [{ text: imagePrompt }]
+      },
+      config: {
+        // @ts-ignore
+        imageConfig: {
+          aspectRatio: "1:1"
+        }
       }
     });
 
